@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#6ea800" />
+  <title>Buzón LioApp</title>
+   <!-- Icono para pestaña del navegador -->
+  <link rel="icon" type="image/png" href="icon-192.png">
+
+  <!-- Icono cuando se agrega a pantalla de inicio (iOS / Android) -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Manifest PWA para que tome iconos y nombre como app -->
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Color de la barra superior cuando se instala como app -->
+  <meta name="theme-color" content="#0f766e">
+
+  <!-- Fuente limpia similar a páginas de finanzas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="style.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#f4f6f7;
+      --card:#ffffff;
+      --line:#d9dee3;
+      --txt:#1f2937;
+      --mut:#5b6572;
+
+      --green:#6ea800;
+      --greenDark:#5a8f00;
+
+      --danger:#b42318;
+      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 10px 24px rgba(0,0,0,.08);
+
+      --r:14px;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--txt);
+      font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+    a{ color:inherit; }
+
+    /* Layout */
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px 14px 28px;
+    }
+    .topbar{
+      background: var(--green);
+      color:#fff;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      padding: 14px 16px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      line-height:1.1;
+    }
+    .brand .t{ font-weight:800; letter-spacing:.15px; font-size:16px; }
+    .brand .s{ opacity:.9; font-size:12px; }
+    .top-actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      padding: 12px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 12px;
+    }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+      .topbar{ border-radius: 0; margin:0 0 12px; }
+      .wrap{ padding: 0 12px 24px; }
+    }
+
+/* Inputs traslúcidos */
+input, select, textarea{
+  width:100%;
+  padding: 10px 10px;
+
+  /* TRANSLUCIDEZ */
+  background-color: rgba(255, 255, 255, 0.18);
+
+  /* BORDES SUAVES */
+  border: 1px solid rgba(46, 39, 39, 0.45);
+  border-radius: 12px;
+
+  /* TEXTO */
+  color: var(--txt);
+  font-size: 12px;
+  outline:none;
+}
+
+    textarea{ min-height: 140px; resize: vertical; }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(110,168,0,.01);
+      box-shadow: 0 0 0 3px rgba(110,168,0,.18);
+    }
+    ::placeholder{ color: rgba(91,101,114,.01); }
+
+    /* Buttons */
+    .btn{
+      appearance:none;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background:#eef1f3;
+      color:var(--txt);
+      padding: 10px 12px;
+      font-weight: 700;
+      letter-spacing:.15px;
+      cursor:pointer;
+      font-size: 13px;
+    }
+    .btn:hover{ background:#e6eaee; }
+    .btn.primary{
+      background: var(--green);
+      border:1px solid rgba(47, 42, 42, 0.06);
+      color:#fff;
+    }
+    .btn.primary:hover{ background: var(--greenDark); }
+    .btn.danger{
+      background: #fff;
+      border-color: rgba(239, 199, 130, 0.35);
+      color: var(--danger);
+    }
+    .btn.danger:hover{ background: rgba(180,35,24,.06); }
+    .btn.ghost{
+      background: transparent;
+      border-color: rgba(255,255,255,.35);
+      color:#fff;
+    }
+    .btn.ghost:hover{ background: rgba(255,255,255,.14); }
+
+    /* Small UI */
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row > *{ flex:1; }
+    .row .shrink{ flex:0 0 auto; }
+    .muted{ color:var(--mut); font-size:12px; }
+    .sep{ height:1px; background:var(--line); margin:10px 0; }
+
+    .chips{ display:flex; gap:8px; flex-wrap:wrap; }
+    .chip{
+      border-radius: 999px;
+      border:1px solid rgba(110,168,0,.28);
+      background: rgba(110,168,0,.10);
+      color:#1f3b10;
+      font-weight:800;
+      font-size: 11.5px;
+      padding: 5px 10px;
+    }
+    .chip.gray{
+      border-color: rgba(91,101,114,.25);
+      background: rgba(91,101,114,.10);
+      color: var(--txt);
+    }
+
+    /* List */
+    .list{ display:flex; flex-direction:column; gap:10px; }
+    .item{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      background:#fff;
+      padding: 12px;
+      transition: box-shadow .15s ease, border-color .15s ease;
+      cursor:pointer;
+    }
+    .item:hover{
+      box-shadow: var(--shadow);
+      border-color: rgba(110,168,0,.35);
+    }
+    .item .head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .item .title{
+      font-weight:900;
+      letter-spacing:.15px;
+      font-size: 13.5px;
+      line-height:1.35;
+      margin:0;
+    }
+    .item .meta{
+      margin-top: 6px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .pill{
+      border-radius:999px;
+      border:1px solid rgba(91,101,114,.25);
+      background: rgba(91,101,114,.08);
+      padding: 4px 9px;
+      font-size: 11.5px;
+      font-weight:800;
+      color: var(--txt);
+    }
+    .pill.green{
+      border-color: rgba(110,168,0,.28);
+      background: rgba(110,168,0,.12);
+      color:#1f3b10;
+    }
+    .pill.done{
+      border-color: rgba(40,140,70,.25);
+      background: rgba(40,140,70,.12);
+      color:#0f2a14;
+    }
+    .item .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+    .smallbtn{
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed; inset:0;
+      background: rgba(17,24,39,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      z-index:1000;
+    }
+    .modal.show{ display:flex; }
+    .modal-card{
+      width:min(920px, 96vw);
+      max-height:90vh;
+      overflow:auto;
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .modal-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      padding: 14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      background:#fbfcfd;
+    }
+    .modal-title{ font-weight:900; font-size: 14px; letter-spacing:.15px; }
+    .modal-sub{ font-size: 12px; color:var(--mut); margin-top:2px; }
+    .modal-body{ padding: 14px; }
+    .modal-body h4{ margin: 10px 0 6px; font-size: 13px; }
+    .block{
+      background: rgba(110,168,0,.06);
+      border:1px solid rgba(110,168,0,.18);
+      border-radius: 12px;
+      padding: 10px;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height:1.5;
+    }
+
+    /* Lock screen */
+    .lock{
+      position:fixed; inset:0;
+      background: linear-gradient(180deg, rgba(110,168,0,.18), rgba(244,246,247,1) 42%);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      z-index:2000;
+    }
+    .lock.show{ display:flex; }
+    .lockcard{
+      width:min(520px, 96vw);
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .lockcard h2{ margin:0 0 6px; font-size: 16px; letter-spacing:.15px; }
+    .lockcard p{ margin:0 0 12px; color:var(--mut); font-size: 13px; }
+    .pinrow{ display:flex; gap:10px; }
+    .pinrow input{ font-size: 18px; letter-spacing: 4px; text-align:center; padding: 12px 10px; }
+    .err{ color: var(--danger); font-weight:800; font-size: 12px; margin-top: 8px; display:none; }
+    .err.show{ display:block; }
+  
+    /* Fondo con imagen difuminada (opcional)
+       - Subí una imagen llamada "fondo.jpg" (o cambiá el nombre acá)
+       - Si no existe, no rompe nada: queda el color de fondo. */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:-40px;
+      background-image: url("fondo.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(200px) saturate(.9);
+      opacity: .5;
+      z-index:-1;
+      pointer-events:none;
+    }
+
+  
+  
+/* ===== Tema "vidrio crema" global ===== */
+:root{
+  --panel: rgba(255,255,255,0.86);       /* recuadros (visibles) */
+  --panelBorder: rgba(217,222,227,0.95); /* borde en tu línea */
+  --field: #f6f4f2f3;       /* inputs cremita translúcido */
+  --fieldBorder: rgb(255, 255, 255); /* borde cremita */
+  --glassBlur: 10px;                    /* blur para paneles */
+  --fieldBlur: 4px;                     /* blur para inputs */
+}
+
+/* ===== TODOS los recuadros principales de la app ===== */
+.card,
+.item,
+.modal-card,
+.lockcard,
+.modal-head{
+  background: var(--panel);
+  border-color: var(--panelBorder);
+  backdrop-filter: blur(var(--glassBlur));
+  -webkit-backdrop-filter: blur(var(--glassBlur));
+}
+
+/* ===== TODOS los campos donde se escribe ===== */
+input, select, textarea{
+  background: var(--field);
+  border-color: var(--fieldBorder);
+  backdrop-filter: blur(var(--fieldBlur));
+  -webkit-backdrop-filter: blur(var(--fieldBlur));
+  /* NO tocamos color de texto: sigue siendo var(--txt) como ya tenés */
+}
+
+/* Placeholder visible (lo tenías casi invisible) */
+input::placeholder,
+textarea::placeholder{
+  color: rgba(91,101,114,0.55);
+}
+/* ===== TEMA VIDRIO (pégalo al final del <style>) ===== */
+
+/* 1) Fondo: que se vea más (menos blur, más presencia) */
+body::before{
+  filter: blur(6px) saturate(1.15);
+  opacity: .9;
+}
+
+/* 2) Panels / recuadros: MUY DIFUMINADOS + TRANSLÚCIDOS */
+:root{
+  --glassPanel: rgba(255, 255, 255, 0.22);   /* cuanto más bajo, más se ve el fondo */
+  --glassBorder: rgba(255, 255, 255, 0.28);
+  --glassBlur: 18px;                         /* difuminado fuerte */
+  --glassShadow: 0 10px 30px rgba(0,0,0,.10);
+}
+
+/* Aplica a todos los recuadros típicos de tu app */
+.card,
+.item,
+.modal-card,
+.lockcard,
+.modal-head,
+.block{
+  background: var(--glassPanel) !important;
+  border-color: var(--glassBorder) !important;
+  backdrop-filter: blur(var(--glassBlur));
+  -webkit-backdrop-filter: blur(var(--glassBlur));
+  box-shadow: var(--glassShadow);
+}
+
+/* 3) Inputs: crema amarillito MUY suave, translúcido */
+input, select, textarea{
+  background: rgba(252, 248, 230, 0.28) !important; /* crema amarillito */
+  border: 1px solid rgba(255, 255, 255, 0.30) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Placeholder visible (el tuyo estaba casi invisible) */
+input::placeholder,
+textarea::placeholder{
+  color: rgba(91,101,114,0.60) !important;
+}
+/* Topbar translúcida */
+.topbar{
+  background: rgba(110, 168, 0, 0.35); /* verde translúcido */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(255,255,255,0.35);
+}
+/* Texto global negro para mejor lectura */
+body,
+.card,
+.item,
+.modal-card,
+.lockcard,
+.modal-head,
+.topbar,
+input,
+textarea,
+select,
+button,
+.btn{
+  color: #111 !important;
+}
+.muted,
+.brand .s,
+.modal-sub{
+  color: #333 !important;
+}
+  </style>
+</head>
+
+<body>
+  <div class="wrap" id="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="t">Buzón Personal</div>
+        <div class="s">Captura rápida • Orden • IA</div>
+      </div>
+      <div class="top-actions">
+        <button class="btn ghost" id="lockNowBtn" type="button">Bloquear</button>
+        <button class="btn ghost" id="aiBtn" type="button">AI / Memory Base</button>
+        <button class="btn ghost" id="exportBtn" type="button">Exportar</button>
+        <button class="btn ghost" id="importBtn" type="button">Importar</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Captura -->
+      <div class="card">
+        <div class="row" style="align-items:flex-start;">
+          <div>
+            <div style="font-weight:900;letter-spacing:.15px;">Entrada rápida</div>
+            <div class="muted">Escribí todo como te salga. Después lo leés, editás y ordenás.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <textarea id="quickText" placeholder="Ej: Bioparque: quedó pendiente revisar el candado del Sector 2. Mañana avisar a Veterinaria por tratamiento..." ></textarea>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn primary shrink" id="saveQuickBtn" type="button">Guardar</button>
+          <div class="muted" id="saveHint">Se guarda en este dispositivo.</div>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="row">
+          <input id="searchInput" placeholder="Buscar…" />
+          <select id="categoryFilter" style="max-width:260px;">
+            <option value="all">Todas las categorías</option>
+          </select>
+          <select id="statusFilter" style="max-width:200px;">
+            <option value="all">Todo</option>
+            <option value="open">Pendiente</option>
+            <option value="done">Hecho</option>
+          </select>
+        </div>
+
+        <div class="muted" style="margin-top:8px;">
+          Tip: tocá una tarjeta para leer completo. Desde ahí podés <b>editar</b>, <b>marcar hecho</b> o <b>borrar</b>.
+        </div>
+      </div>
+
+      <!-- Lista -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <div style="font-weight:900;letter-spacing:.15px;">Buzón</div>
+            <div class="muted" id="counts">—</div>
+          </div>
+          <button class="btn danger shrink" id="clearDoneBtn" type="button" title="Elimina solo los marcados como Hecho">Limpiar Hechos</button>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="list" id="list"></div>
+
+        <div class="muted" style="margin-top:10px;">
+          Nota: esto es <b>personal y privado</b> en tu equipo. Para sincronizar con otros, después lo conectamos a una base central.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de lectura/edición -->
+  <div class="modal" id="entryModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="modalTitle">Entrada</div>
+          <div class="modal-sub" id="modalSub"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn secondary smallbtn" id="modalCloseBtn" type="button">Cerrar</button>
+        </div>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Lock screen -->
+  <div class="lock" id="lockScreen" aria-hidden="true">
+    <div class="lockcard">
+      <h2 id="lockTitle">Ingresá tu PIN</h2>
+      <p id="lockSubtitle">La app se bloquea automáticamente tras 10 minutos sin uso.</p>
+
+      <div class="pinrow">
+        <input id="pinInput" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" />
+        <button class="btn primary shrink" id="pinBtn" type="button">Entrar</button>
+      </div>
+      <div class="err" id="pinErr">PIN incorrecto.</div>
+
+      <div class="sep"></div>
+
+      <div class="muted">
+        <b>Primer uso:</b> te va a pedir crear PIN. Guardalo en un lugar seguro.
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="importFile" accept="application/json" style="display:none;" />
+
+  <script>
+    /***********************
+     * Storage & helpers
+     ************************/
+    const LS_KEY = "buzon_state_v1";
+    const LS_PIN_HASH = "buzon_pin_hash_v1";
+    const LS_LAST_ACTIVE = "buzon_last_active_v1";
+
+    const INACTIVITY_MS = 10 * 60 * 1000; // 10 min
+
+    const DEFAULT_STATE = {
+      entries: [] // {id, text, createdAt, updatedAt, status, category, type, dueDate, priority}
+    };
+
+    function nowISO(){ return new Date().toISOString(); }
+    function uid(){
+      return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
+    function fmt(ts){
+      try{
+        const d = new Date(ts);
+        return d.toLocaleString("es-AR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+      }catch{ return ts; }
+    }
+    function clip(s, n=130){
+      const t = (s||"").trim().replace(/\s+/g," ");
+      return t.length>n ? t.slice(0,n-1)+"…" : t;
+    }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return structuredClone(DEFAULT_STATE);
+        const st = JSON.parse(raw);
+        if (!st || !Array.isArray(st.entries)) return structuredClone(DEFAULT_STATE);
+        return st;
+      }catch{
+        return structuredClone(DEFAULT_STATE);
+      }
+    }
+    function saveState(){
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    }
+
+    let state = loadState();
+
+    /***********************
+     * PIN (hash) utilities
+     ************************/
+    async function sha256(text){
+      const enc = new TextEncoder().encode(text);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      const arr = Array.from(new Uint8Array(buf));
+      return arr.map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+    function hasPin(){ return !!localStorage.getItem(LS_PIN_HASH); }
+
+    async function setPin(pin){
+      const h = await sha256(pin);
+      localStorage.setItem(LS_PIN_HASH, h);
+    }
+    async function checkPin(pin){
+      const h = localStorage.getItem(LS_PIN_HASH) || "";
+      if (!h) return false;
+      const hp = await sha256(pin);
+      return hp === h;
+    }
+
+    /***********************
+     * Lock & inactivity
+     ************************/
+    const lockScreen = document.getElementById("lockScreen");
+    const lockTitle = document.getElementById("lockTitle");
+    const lockSubtitle = document.getElementById("lockSubtitle");
+    const pinInput = document.getElementById("pinInput");
+    const pinBtn = document.getElementById("pinBtn");
+    const pinErr = document.getElementById("pinErr");
+
+    let inactivityTimer = null;
+
+    function showLock(mode){
+      // mode: "create" | "enter"
+      lockScreen.classList.add("show");
+      lockScreen.setAttribute("aria-hidden","false");
+      pinErr.classList.remove("show");
+      pinInput.value = "";
+      pinInput.focus();
+
+      if (mode === "create"){
+        lockTitle.textContent = "Crear PIN numérico";
+        lockSubtitle.textContent = "Elegí un PIN (4 a 8 dígitos). Te lo va a pedir al abrir y tras 10 min sin uso.";
+        pinBtn.textContent = "Crear";
+      } else {
+        lockTitle.textContent = "Ingresá tu PIN";
+        lockSubtitle.textContent = "La app se bloquea automáticamente tras 10 minutos sin uso.";
+        pinBtn.textContent = "Entrar";
+      }
+    }
+    function hideLock(){
+      lockScreen.classList.remove("show");
+      lockScreen.setAttribute("aria-hidden","true");
+      pinErr.classList.remove("show");
+      startInactivityWatch();
+    }
+
+    function setLastActive(){
+      const t = Date.now();
+      localStorage.setItem(LS_LAST_ACTIVE, String(t));
+    }
+    function isExpired(){
+      const t = Number(localStorage.getItem(LS_LAST_ACTIVE) || "0");
+      if (!t) return true;
+      return (Date.now() - t) > INACTIVITY_MS;
+    }
+
+    function startInactivityWatch(){
+      stopInactivityWatch();
+      setLastActive();
+      inactivityTimer = setTimeout(()=> {
+        // lock after inactivity
+        showLock("enter");
+      }, INACTIVITY_MS);
+    }
+    function stopInactivityWatch(){
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = null;
+    }
+
+    function registerActivityListeners(){
+      const bump = () => {
+        if (lockScreen.classList.contains("show")) return; // no activity while locked
+        setLastActive();
+        startInactivityWatch();
+      };
+      ["click","touchstart","keydown","scroll","mousemove"].forEach(evt=>{
+        document.addEventListener(evt, bump, { passive:true });
+      });
+    }
+
+    async function initLockFlow(){
+      if (!hasPin()){
+        showLock("create");
+      } else {
+        if (isExpired()){
+          showLock("enter");
+        } else {
+          hideLock();
+        }
+      }
+    }
+
+    pinBtn.addEventListener("click", async ()=>{
+      const pin = (pinInput.value || "").trim();
+      pinErr.classList.remove("show");
+
+      if (!/^\d{4,8}$/.test(pin)){
+        pinErr.textContent = "Usá un PIN numérico de 4 a 8 dígitos.";
+        pinErr.classList.add("show");
+        return;
+      }
+
+      if (!hasPin()){
+        // create flow: confirm once
+        const confirmPin = prompt("Confirmá el PIN (repetilo igual):");
+        if ((confirmPin || "").trim() !== pin){
+          pinErr.textContent = "No coincide la confirmación.";
+          pinErr.classList.add("show");
+          return;
+        }
+        await setPin(pin);
+        setLastActive();
+        hideLock();
+        renderAll();
+        return;
+      }
+
+      // enter flow
+      const ok = await checkPin(pin);
+      if (!ok){
+        pinErr.textContent = "PIN incorrecto.";
+        pinErr.classList.add("show");
+        return;
+      }
+      setLastActive();
+      hideLock();
+      renderAll();
+    });
+
+    pinInput.addEventListener("keydown", (e)=>{
+      if (e.key === "Enter") pinBtn.click();
+    });
+
+    document.getElementById("lockNowBtn").addEventListener("click", ()=>{
+      stopInactivityWatch();
+      showLock(hasPin() ? "enter" : "create");
+    });
+
+    /***********************
+     * Entries: add/list/view/edit
+     ************************/
+    const quickText = document.getElementById("quickText");
+    const saveQuickBtn = document.getElementById("saveQuickBtn");
+    const listEl = document.getElementById("list");
+    const countsEl = document.getElementById("counts");
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const clearDoneBtn = document.getElementById("clearDoneBtn");
+
+    const CATEGORIES = [
+      "Sin clasificar",
+      "San Simón – Preceptor",
+      "San Simón – Secretaría / Consejo",
+      "Bioparque – Coordinación",
+      "Inversiones",
+      "Emprendimientos",
+      "Personal"
+    ];
+    const TYPES = ["Nota","Tarea","Recordatorio","Plan"];
+    const PRIORITIES = ["Normal","Alta","Baja"];
+
+    // Fill category filter options (main screen)
+    (function initCategoryFilter(){
+      if (!categoryFilter) return;
+      // Reset options
+      categoryFilter.innerHTML = '<option value="all">Todas las categorías</option>';
+      for (const c of CATEGORIES){
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        categoryFilter.appendChild(opt);
+      }
+    })();
+
+    function addEntry(text){
+      const t = (text||"").trim();
+      if (!t) return false;
+
+      const e = {
+        id: uid(),
+        text: t,
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+        status: "open",
+        category: "Sin clasificar",
+        type: "Nota",
+        dueDate: "",
+        priority: "Normal"
+      };
+      state.entries.unshift(e);
+      saveState();
+      return true;
+    }
+
+    function updateEntry(id, patch){
+      const idx = state.entries.findIndex(x=>x.id===id);
+      if (idx === -1) return false;
+      state.entries[idx] = { ...state.entries[idx], ...patch, updatedAt: nowISO() };
+      saveState();
+      return true;
+    }
+
+    function deleteEntry(id){
+      state.entries = state.entries.filter(x=>x.id!==id);
+      saveState();
+    }
+
+    function clearDone(){
+      state.entries = state.entries.filter(x=>x.status!=="done");
+      saveState();
+    }
+
+    function filteredEntries(){
+      const q = (searchInput.value||"").trim().toLowerCase();
+      const s = statusFilter.value;
+      const csel = (categoryFilter && categoryFilter.value) ? categoryFilter.value : "all";
+
+      return state.entries.filter(e=>{
+        if (s==="open" && e.status!=="open") return false;
+        if (s==="done" && e.status!=="done") return false;
+
+        const cat = e.category || "Sin clasificar";
+        if (csel !== "all" && cat !== csel) return false;
+
+        if (!q) return true;
+        const blob = `${e.text} ${cat} ${e.type||""} ${e.priority||""}`.toLowerCase();
+        return blob.includes(q);
+      });
+    }
+
+
+    saveQuickBtn.addEventListener("click", ()=>{
+      const ok = addEntry(quickText.value);
+      if (!ok) return;
+      quickText.value = "";
+      renderAll();
+    });
+
+    quickText.addEventListener("keydown", (e)=>{
+      // Ctrl+Enter to save
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter"){
+        saveQuickBtn.click();
+      }
+    });
+
+    searchInput.addEventListener("input", renderList);
+    statusFilter.addEventListener("change", renderList);
+    categoryFilter && categoryFilter.addEventListener("change", renderList);
+
+    clearDoneBtn.addEventListener("click", ()=>{
+      if (!confirm("¿Eliminar todos los registros marcados como Hecho?")) return;
+      clearDone();
+      renderAll();
+    });
+
+    /***********************
+     * Modal (read/edit)
+     ************************/
+    const entryModal = document.getElementById("entryModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSub = document.getElementById("modalSub");
+    const modalBody = document.getElementById("modalBody");
+    const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+    function openEntryModal(entry){
+      modalTitle.textContent = entry.status==="done" ? "Entrada (Hecho)" : "Entrada";
+      modalSub.textContent = `Creado: ${fmt(entry.createdAt)} • Actualizado: ${fmt(entry.updatedAt)}`;
+
+      const catOptions = CATEGORIES.map(c=>`<option value="${escapeHtml(c)}"${entry.category===c?" selected":""}>${escapeHtml(c)}</option>`).join("");
+      const typeOptions = TYPES.map(t=>`<option value="${escapeHtml(t)}"${entry.type===t?" selected":""}>${escapeHtml(t)}</option>`).join("");
+      const prioOptions = PRIORITIES.map(p=>`<option value="${escapeHtml(p)}"${entry.priority===p?" selected":""}>${escapeHtml(p)}</option>`).join("");
+
+      modalBody.innerHTML = `
+        <div class="chips" style="margin-bottom:10px;">
+          <span class="chip ${entry.status==="done"?"":"gray"}">${entry.status==="done"?"✅ Hecho":"⏳ Pendiente"}</span>
+          <span class="chip">${escapeHtml(entry.category||"Sin clasificar")}</span>
+          <span class="chip gray">${escapeHtml(entry.type||"Nota")}</span>
+          <span class="chip gray">${escapeHtml(entry.priority||"Normal")}</span>
+        </div>
+
+        <h4>Texto</h4>
+        <textarea id="editText" style="min-height:160px;">${escapeHtml(entry.text||"")}</textarea>
+
+        <div class="sep"></div>
+
+        <div class="row">
+          <div>
+            <div class="muted" style="margin-bottom:6px;">Categoría</div>
+            <select id="editCategory">${catOptions}</select>
+          </div>
+          <div>
+            <div class="muted" style="margin-bottom:6px;">Tipo</div>
+            <select id="editType">${typeOptions}</select>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <div class="muted" style="margin-bottom:6px;">Prioridad</div>
+            <select id="editPriority">${prioOptions}</select>
+          </div>
+          <div>
+            <div class="muted" style="margin-bottom:6px;">Fecha / Recordatorio (opcional)</div>
+            <input id="editDue" type="date" value="${escapeHtml(entry.dueDate||"")}" />
+          </div>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="row">
+          <button class="btn primary shrink" id="saveEditBtn" type="button">Guardar cambios</button>
+          <button class="btn secondary shrink" id="toggleDoneBtn" type="button">${entry.status==="done"?"Marcar Pendiente":"Marcar Hecho"}</button>
+          <button class="btn danger shrink" id="deleteBtn" type="button">Borrar</button>
+          <div class="muted" id="editHint"></div>
+        </div>
+      `;
+
+      // wire actions
+      const saveEditBtn = document.getElementById("saveEditBtn");
+      const toggleDoneBtn = document.getElementById("toggleDoneBtn");
+      const deleteBtn = document.getElementById("deleteBtn");
+      const editHint = document.getElementById("editHint");
+
+      saveEditBtn.addEventListener("click", ()=>{
+        const newText = (document.getElementById("editText").value || "").trim();
+        if (!newText){
+          editHint.textContent = "El texto no puede quedar vacío.";
+          editHint.style.color = "var(--danger)";
+          return;
+        }
+        updateEntry(entry.id, {
+          text: newText,
+          category: document.getElementById("editCategory").value,
+          type: document.getElementById("editType").value,
+          priority: document.getElementById("editPriority").value,
+          dueDate: document.getElementById("editDue").value || ""
+        });
+        editHint.textContent = "Guardado.";
+        editHint.style.color = "var(--mut)";
+        // refresh entry ref
+        entry = state.entries.find(x=>x.id===entry.id) || entry;
+        renderAll();
+        openEntryModal(entry); // re-open refreshed
+      });
+
+      toggleDoneBtn.addEventListener("click", ()=>{
+        updateEntry(entry.id, { status: entry.status==="done" ? "open" : "done" });
+        renderAll();
+        closeEntryModal();
+      });
+
+      deleteBtn.addEventListener("click", ()=>{
+        if (!confirm("¿Borrar esta entrada?")) return;
+        deleteEntry(entry.id);
+        renderAll();
+        closeEntryModal();
+      });
+
+      entryModal.classList.add("show");
+      entryModal.setAttribute("aria-hidden","false");
+    }
+
+    function closeEntryModal(){
+      entryModal.classList.remove("show");
+      entryModal.setAttribute("aria-hidden","true");
+    }
+
+    // Close behaviors (delegated, robust)
+    document.addEventListener("click", (e)=>{
+      const t = e.target;
+      if (!t) return;
+
+      if (t.id === "modalCloseBtn" || (t.closest && t.closest("#modalCloseBtn"))){
+        e.preventDefault(); e.stopPropagation();
+        closeEntryModal(); return;
+      }
+      const overlay = t.closest ? t.closest("#entryModal") : null;
+      if (overlay && t === overlay){
+        e.preventDefault(); e.stopPropagation();
+        closeEntryModal(); return;
+      }
+    }, true);
+
+    document.addEventListener("keydown", (e)=>{
+      if (e.key === "Escape") closeEntryModal();
+    });
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    /***********************
+     * Render
+     ************************/
+    function renderCounts(){
+      const total = state.entries.length;
+      const open = state.entries.filter(e=>e.status==="open").length;
+      const done = total - open;
+      countsEl.textContent = `${total} total • ${open} pendientes • ${done} hechos`;
+    }
+
+    function renderList(){
+      renderCounts();
+
+      const items = filteredEntries();
+      listEl.innerHTML = "";
+
+      if (!items.length){
+        listEl.innerHTML = `
+          <div class="muted">No hay entradas para mostrar con esos filtros.</div>
+        `;
+        return;
+      }
+
+      // Group by category for clearer reading
+      const byCat = new Map();
+      for (const e of items){
+        const cat = e.category || "Sin clasificar";
+        if (!byCat.has(cat)) byCat.set(cat, []);
+        byCat.get(cat).push(e);
+      }
+
+      const orderedCats = ["Sin clasificar", ...CATEGORIES.filter(c=>c!=="Sin clasificar")];
+      const catsToRender = orderedCats.filter(c=>byCat.has(c)).concat(
+        Array.from(byCat.keys()).filter(c=>!orderedCats.includes(c))
+      );
+
+      const makeItem = (e) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        const title = clip(e.text, 150);
+        const cat = e.category || "Sin clasificar";
+        const type = e.type || "Nota";
+        const prio = e.priority || "Normal";
+        const due = e.dueDate ? ` • 📅 ${e.dueDate}` : "";
+
+        div.innerHTML = `
+          <div class="head">
+            <div style="flex:1;">
+              <p class="title">${escapeHtml(title)}</p>
+              <div class="meta">
+                <span class="pill ${e.status==="done"?"done":"green"}">${e.status==="done"?"✅ Hecho":"⏳ Pendiente"}</span>
+                <span class="pill green">${escapeHtml(cat)}</span>
+                <span class="pill">${escapeHtml(type)}</span>
+                <span class="pill">${escapeHtml(prio)}</span>
+                <span class="pill">${escapeHtml(fmt(e.createdAt))}${escapeHtml(due)}</span>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn secondary smallbtn" type="button" data-act="view">Ver</button>
+              <button class="btn secondary smallbtn" type="button" data-act="toggle">${e.status==="done"?"Reabrir":"Hecho"}</button>
+            </div>
+          </div>
+        `;
+
+        div.addEventListener("click", ()=> openEntryModal(e));
+        div.querySelector('[data-act="view"]').addEventListener("click", (ev)=>{
+          ev.preventDefault(); ev.stopPropagation();
+          openEntryModal(e);
+        });
+        div.querySelector('[data-act="toggle"]').addEventListener("click", (ev)=>{
+          ev.preventDefault(); ev.stopPropagation();
+          updateEntry(e.id, { status: e.status==="done" ? "open" : "done" });
+          renderAll();
+        });
+
+        return div;
+      };
+
+      for (const cat of catsToRender){
+        const arr = byCat.get(cat) || [];
+        if (!arr.length) continue;
+
+        const h = document.createElement("div");
+        h.className = "muted";
+        h.style.fontWeight = "900";
+        h.style.letterSpacing = ".15px";
+        h.style.margin = "10px 2px 6px";
+        h.textContent = `${cat} (${arr.length})`;
+        listEl.appendChild(h);
+
+        for (const e of arr){
+          listEl.appendChild(makeItem(e));
+        }
+      }
+    }
+
+    function renderAll(){
+      renderCounts();
+      renderList();
+    }
+
+    /***********************
+     * AI / Memory Base
+     ************************/
+    const aiBtn = document.getElementById("aiBtn");
+
+    function buildPrompt(){
+      const entries = state.entries
+        .slice()
+        .sort((a,b)=> (a.createdAt||"").localeCompare(b.createdAt||""));
+
+      // group by category
+      const groups = new Map();
+      for (const e of entries){
+        const c = e.category || "Sin clasificar";
+        if (!groups.has(c)) groups.set(c, []);
+        groups.get(c).push(e);
+      }
+
+     const lines = [];
+lines.push(`Actuá como un asistente experto en:
+- organización personal
+- secretaría institucional
+- coordinación de equipos
+- planificación operativa
+
+Estoy usando este buzón como capturador rápido de ideas, tareas, recordatorios y problemas.
+La información puede estar desordenada, incompleta o mezclada.
+
+TU OBJETIVO:
+Transformar este conjunto de entradas en un sistema claro, accionable y priorizado,
+ayudándome a tomar decisiones y a no olvidar nada importante.
+
+NO inventes datos. Trabajá solo con lo que aparece.
+Si falta información, señalalo explícitamente.
+
+=== TAREAS OBLIGATORIAS ===
+
+1) CLASIFICACIÓN
+Reorganizá cada entrada en una de estas áreas (si corresponde):
+- San Simón – Preceptor
+- San Simón – Secretaría / Cooperativa
+- Bioparque – Coordinación
+- Proyectos / Inversiones / Emprendimientos
+- Personal
+Si una entrada está mal clasificada, corregila y explicá brevemente por qué.
+
+2) CONVERSIÓN A ACCIONES
+Convertí cada entrada relevante en una tarea concreta usando este formato:
+VERBO + QUÉ + PARA QUÉ + (QUIÉN si aplica)
+
+3) PRIORIDAD
+Asigná prioridad:
+- ALTA: urgente o con impacto institucional / riesgo
+- MEDIA: importante pero no urgente
+- BAJA: puede esperar
+
+4) AGENDA OPERATIVA
+Proponé una agenda práctica:
+- Qué debería hacer HOY
+- Qué esta SEMANA
+- Qué puede programarse más adelante
+
+5) ALERTAS Y RIESGOS
+Detectá posibles olvidos, conflictos latentes y dependencias de terceros.
+
+6) SIMPLIFICACIÓN
+Indicá tareas repetidas, delegables y automatizables.
+
+=== ESTILO DE RESPUESTA ===
+- Claro y directo
+- En listas
+- Sin frases genéricas`);
+      
+      for (const [cat, arr] of groups.entries()){
+        lines.push(`### ${cat}`);
+        for (const e of arr){
+          const status = e.status==="done" ? "HECHO" : "PENDIENTE";
+          const due = e.dueDate ? ` | FECHA:${e.dueDate}` : "";
+          const type = e.type ? ` | TIPO:${e.type}` : "";
+          const prio = e.priority ? ` | PRIORIDAD:${e.priority}` : "";
+          lines.push(`- [${status}] ${e.text.replace(/\s+/g," ").trim()}${type}${prio}${due} (creado ${fmt(e.createdAt)})`);
+        }
+        lines.push("");
+      }
+
+      lines.push("SALIDA PEDIDA:");
+      lines.push("1) Resumen por categoría");
+      lines.push("2) Lista priorizada (Top 10) con acciones");
+      lines.push("3) Qué debería delegar / automatizar");
+      lines.push("4) Alertas (cosas sensibles / urgentes)");
+      return lines.join("\n");
+    }
+
+    aiBtn.addEventListener("click", async ()=>{
+      const prompt = buildPrompt();
+      try{
+        await navigator.clipboard.writeText(prompt);
+        alert("Memory Base copiada al portapapeles. Pegala en ChatGPT cuando quieras.");
+      }catch{
+        // fallback: open modal with prompt
+        modalTitle.textContent = "AI / Memory Base";
+        modalSub.textContent = "Copiá el texto y pegalo en ChatGPT.";
+        modalBody.innerHTML = `<div class="block">${escapeHtml(prompt)}</div>`;
+        entryModal.classList.add("show");
+        entryModal.setAttribute("aria-hidden","false");
+      }
+    });
+
+    /***********************
+     * Export / Import JSON
+     ************************/
+    const exportBtn = document.getElementById("exportBtn");
+    const importBtn = document.getElementById("importBtn");
+    const importFile = document.getElementById("importFile");
+
+    exportBtn.addEventListener("click", ()=>{
+      const payload = {
+        exportedAt: nowISO(),
+        app: "buzon_personal_v1",
+        state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `buzon_export_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener("click", ()=> importFile.click());
+
+    importFile.addEventListener("change", async ()=>{
+      const f = importFile.files && importFile.files[0];
+      importFile.value = "";
+      if (!f) return;
+
+      try{
+        const text = await f.text();
+        const data = JSON.parse(text);
+        const incoming = data.state || data;
+        if (!incoming || !Array.isArray(incoming.entries)) throw new Error("Formato inválido.");
+
+        if (!confirm("¿Importar y reemplazar tu buzón actual? (Se recomienda exportar antes)")) return;
+        state = incoming;
+        saveState();
+        renderAll();
+        alert("Importación completada.");
+      }catch(err){
+        alert("No se pudo importar: " + (err?.message || "error"));
+      }
+    });
+
+    /***********************
+     * PWA: minimal manifest + SW generator (optional)
+     * - If you don't create manifest.webmanifest & sw.js files, the app still works as a web app.
+     ************************/
+    if ("serviceWorker" in navigator){
+      // If sw.js exists in repo, it will register; otherwise it silently fails.
+      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    }
+
+    /***********************
+     * Init
+     ************************/
+    registerActivityListeners();
+    renderAll();
+    initLockFlow();
+  </script>
+</body>
+</html>
