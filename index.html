@@ -365,6 +365,49 @@ input::placeholder,
 textarea::placeholder{
   color: rgba(91,101,114,0.55);
 }
+/* ===== TEMA VIDRIO (pégalo al final del <style>) ===== */
+
+/* 1) Fondo: que se vea más (menos blur, más presencia) */
+body::before{
+  filter: blur(6px) saturate(1.15);
+  opacity: .9;
+}
+
+/* 2) Panels / recuadros: MUY DIFUMINADOS + TRANSLÚCIDOS */
+:root{
+  --glassPanel: rgba(255, 255, 255, 0.22);   /* cuanto más bajo, más se ve el fondo */
+  --glassBorder: rgba(255, 255, 255, 0.28);
+  --glassBlur: 18px;                         /* difuminado fuerte */
+  --glassShadow: 0 10px 30px rgba(0,0,0,.10);
+}
+
+/* Aplica a todos los recuadros típicos de tu app */
+.card,
+.item,
+.modal-card,
+.lockcard,
+.modal-head,
+.block{
+  background: var(--glassPanel) !important;
+  border-color: var(--glassBorder) !important;
+  backdrop-filter: blur(var(--glassBlur));
+  -webkit-backdrop-filter: blur(var(--glassBlur));
+  box-shadow: var(--glassShadow);
+}
+
+/* 3) Inputs: crema amarillito MUY suave, translúcido */
+input, select, textarea{
+  background: rgba(252, 248, 230, 0.28) !important; /* crema amarillito */
+  border: 1px solid rgba(255, 255, 255, 0.30) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Placeholder visible (el tuyo estaba casi invisible) */
+input::placeholder,
+textarea::placeholder{
+  color: rgba(91,101,114,0.60) !important;
+}
   </style>
 </head>
 
