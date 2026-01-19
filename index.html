@@ -1073,7 +1073,7 @@ button,
       }
 
      const lines = [];
-lines.push("Actuá como un asistente experto en:
+lines.push(`Actuá como un asistente experto en:
 - organización personal
 - secretaría institucional
 - coordinación de equipos
@@ -1109,7 +1109,6 @@ Asigná prioridad:
 - ALTA: urgente o con impacto institucional / riesgo
 - MEDIA: importante pero no urgente
 - BAJA: puede esperar
-Explicá brevemente el criterio si no es obvio.
 
 4) AGENDA OPERATIVA
 Proponé una agenda práctica:
@@ -1118,34 +1117,16 @@ Proponé una agenda práctica:
 - Qué puede programarse más adelante
 
 5) ALERTAS Y RIESGOS
-Detectá:
-- posibles olvidos
-- conflictos latentes
-- temas sensibles institucionales
-- tareas que dependen de terceros
+Detectá posibles olvidos, conflictos latentes y dependencias de terceros.
 
 6) SIMPLIFICACIÓN
-Indicá:
-- tareas repetidas que podrían unificarse
-- cosas delegables
-- cosas automatizables o que convendría sistematizar
+Indicá tareas repetidas, delegables y automatizables.
 
 === ESTILO DE RESPUESTA ===
 - Claro y directo
-- Sin frases genéricas
-- En formato de listas
-- Pensado para alguien con muchas responsabilidades y poco tiempo");
-
-      lines.push("Reglas:");
-      lines.push("- No inventes datos.");
-      lines.push("- Separá por categorías.");
-      lines.push("- Marcá urgencias y próximos pasos concretos.");
-      lines.push("- Proponé un plan de acción con prioridades (alta/media/baja) y tareas claras.");
-      lines.push("- Si detectás recordatorios o fechas, sugerí agenda.");
-      lines.push("");
-      lines.push("ENTRADAS (desde el buzón):");
-      lines.push("");
-
+- En listas
+- Sin frases genéricas`);
+      
       for (const [cat, arr] of groups.entries()){
         lines.push(`### ${cat}`);
         for (const e of arr){
