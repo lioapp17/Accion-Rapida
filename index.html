@@ -326,9 +326,7 @@ input, select, textarea{
       z-index:-1;
       pointer-events:none;
     }
-
-  
-  
+ 
 /* ===== Tema "vidrio crema" global ===== */
 :root{
   --panel: rgba(255,255,255,0.86);       /* recuadros (visibles) */
@@ -436,6 +434,18 @@ button,
 .modal-sub{
   color: #333 !important;
 }
+    /* Fondo nítido (última palabra) */
+body::before{
+  inset: 0 !important;
+  background-image: url("fondo.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+
+  filter: none !important;
+  opacity: 1 !important;
+}
+
   </style>
 </head>
 
