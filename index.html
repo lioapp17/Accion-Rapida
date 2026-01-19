@@ -367,7 +367,7 @@ textarea::placeholder{
 
 /* 1) Fondo: que se vea más (menos blur, más presencia) */
 body::before{
-  filter: blur(6px) saturate(1.15);
+  filter: none;
   opacity: .9;
 }
 
@@ -444,11 +444,6 @@ body::before{
 
   filter: none !important;
   opacity: 1 !important;
-}
-/* TEST: si esto no cambia, algo te lo pisa o no es ese selector */
-.card, .item, .modal-card, .lockcard, .modal-head, .block{
-  background: rgba(255, 0, 0, 0.08) !important;
-  border-color: rgba(255,255,255,0.20) !important;
 }
 
   </style>
