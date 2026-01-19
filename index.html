@@ -408,6 +408,34 @@ input::placeholder,
 textarea::placeholder{
   color: rgba(91,101,114,0.60) !important;
 }
+/* Topbar translúcida */
+.topbar{
+  background: rgba(110, 168, 0, 0.35); /* verde translúcido */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(255,255,255,0.35);
+}
+/* Texto global negro para mejor lectura */
+body,
+.card,
+.item,
+.modal-card,
+.lockcard,
+.modal-head,
+.topbar,
+input,
+textarea,
+select,
+button,
+.btn{
+  color: #111 !important;
+}
+.muted,
+.brand .s,
+.modal-sub{
+  color: #333 !important;
+}
   </style>
 </head>
 
