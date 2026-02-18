@@ -177,6 +177,42 @@ input, select, textarea{
 
     /* List */
     .list{ display:flex; flex-direction:column; gap:10px; }
+    .calendar-wrap{ display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+    .calendar-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .calendar-title{ font-weight:900; letter-spacing:.2px; }
+    .calendar-nav{ display:flex; gap:6px; }
+    .icon-btn{ min-width:34px; padding:8px 10px; }
+    .weekdays,
+    .calendar-grid{ display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:6px; }
+    .weekday{ text-align:center; font-size:11px; font-weight:800; color:var(--mut); }
+    .day-cell{
+      border:1px solid rgba(255,255,255,0.25);
+      border-radius:12px;
+      min-height:66px;
+      padding:8px 6px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:6px;
+      background: rgba(255,255,255,0.10);
+      cursor:pointer;
+    }
+    .day-cell.out{ opacity:.4; cursor:default; }
+    .day-cell.today{ border-color: rgba(110,168,0,.55); box-shadow: 0 0 0 2px rgba(110,168,0,.2) inset; }
+    .day-cell.selected{ background: rgba(110,168,0,.25); border-color: rgba(110,168,0,.6); }
+    .day-num{ font-size:12px; font-weight:800; }
+    .day-dot{
+      align-self:flex-start;
+      font-size:11px;
+      border-radius:999px;
+      padding:2px 7px;
+      font-weight:800;
+      background: rgba(110,168,0,.2);
+      border:1px solid rgba(110,168,0,.4);
+    }
+    .agenda-list{ display:flex; flex-direction:column; gap:6px; }
+    .agenda-item{ border:1px solid rgba(255,255,255,.25); border-radius:10px; padding:8px; cursor:pointer; background: rgba(255,255,255,.08); }
+    .agenda-item:hover{ border-color: rgba(110,168,0,.45); }
     .item{
       border:1px solid var(--line);
       border-radius: 14px;
@@ -514,6 +550,27 @@ body::before{
 
         <div class="sep"></div>
 
+        <div class="calendar-wrap">
+          <div class="calendar-head">
+            <div>
+              <div class="calendar-title">Calendario de recordatorios</div>
+              <div class="muted" id="calendarMonthLabel"></div>
+            </div>
+            <div class="calendar-nav">
+              <button class="btn icon-btn" id="prevMonthBtn" type="button" aria-label="Mes anterior">◀</button>
+              <button class="btn icon-btn" id="nextMonthBtn" type="button" aria-label="Mes siguiente">▶</button>
+            </div>
+          </div>
+          <div class="weekdays" aria-hidden="true">
+            <div class="weekday">Lun</div><div class="weekday">Mar</div><div class="weekday">Mié</div><div class="weekday">Jue</div><div class="weekday">Vie</div><div class="weekday">Sáb</div><div class="weekday">Dom</div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <div>
+            <div class="muted" id="calendarLegend">Seleccioná un día para ver sus recordatorios.</div>
+            <div class="agenda-list" id="calendarAgenda"></div>
+          </div>
+        </div>
+
         <div class="list" id="list"></div>
 
         <div class="muted" style="margin-top:10px;">
@@ -769,6 +826,12 @@ body::before{
     const statusFilter = document.getElementById("statusFilter");
     const categoryFilter = document.getElementById("categoryFilter");
     const clearDoneBtn = document.getElementById("clearDoneBtn");
+    const calendarMonthLabel = document.getElementById("calendarMonthLabel");
+    const calendarGrid = document.getElementById("calendarGrid");
+    const calendarLegend = document.getElementById("calendarLegend");
+    const calendarAgenda = document.getElementById("calendarAgenda");
+    const prevMonthBtn = document.getElementById("prevMonthBtn");
+    const nextMonthBtn = document.getElementById("nextMonthBtn");
 
     const CATEGORIES = [
       "Sin clasificar",
@@ -778,6 +841,112 @@ body::before{
     ];
     const TYPES = ["Nota","Tarea","Recordatorio","Plan","Consejo","Mesa"];
     const PRIORITIES = ["Normal","Alta","Baja","Sensible"];
+    let calendarCursor = new Date();
+    calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth(), 1);
+    let selectedCalendarDate = "";
+
+    function parseDateLocal(ymd){
+      if (!ymd || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
+      const [y,m,d] = ymd.split("-").map(Number);
+      return new Date(y, m-1, d);
+    }
+
+    function formatMonthYear(d){
+      return d.toLocaleDateString("es-AR", { month:"long", year:"numeric" });
+    }
+
+    function remindersByDay(year, month){
+      const map = new Map();
+      for (const e of state.entries){
+        if (!e.dueDate) continue;
+        const dt = parseDateLocal(e.dueDate);
+        if (!dt) continue;
+        if (dt.getFullYear() !== year || dt.getMonth() !== month) continue;
+        const day = dt.getDate();
+        if (!map.has(day)) map.set(day, []);
+        map.get(day).push(e);
+      }
+      return map;
+    }
+
+    function renderCalendarAgenda(entries, selectedDate){
+      calendarAgenda.innerHTML = "";
+      if (!selectedDate){
+        calendarLegend.textContent = "Seleccioná un día para ver sus recordatorios.";
+        return;
+      }
+      const prettyDate = parseDateLocal(selectedDate)?.toLocaleDateString("es-AR", { weekday:"long", day:"2-digit", month:"long" }) || selectedDate;
+      if (!entries.length){
+        calendarLegend.textContent = `Sin recordatorios para ${prettyDate}.`;
+        return;
+      }
+      calendarLegend.textContent = `${entries.length} recordatorio(s) para ${prettyDate}.`;
+      entries
+        .slice()
+        .sort((a,b)=> (a.priority||"").localeCompare(b.priority||""))
+        .forEach((entry)=>{
+          const div = document.createElement("button");
+          div.type = "button";
+          div.className = "agenda-item";
+          div.innerHTML = `<b>${escapeHtml(clip(entry.text, 70))}</b><div class="muted">${escapeHtml(entry.category||"Sin clasificar")} • ${escapeHtml(entry.priority||"Normal")}</div>`;
+          div.addEventListener("click", ()=> openEntryModal(entry));
+          calendarAgenda.appendChild(div);
+        });
+    }
+
+    function renderReminderCalendar(){
+      if (!calendarGrid) return;
+      const year = calendarCursor.getFullYear();
+      const month = calendarCursor.getMonth();
+      const first = new Date(year, month, 1);
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const weekStart = (first.getDay() + 6) % 7; // lunes=0
+      const reminders = remindersByDay(year, month);
+      const today = new Date();
+
+      calendarMonthLabel.textContent = formatMonthYear(first);
+      calendarGrid.innerHTML = "";
+
+      for (let i = 0; i < weekStart; i++){
+        const blank = document.createElement("div");
+        blank.className = "day-cell out";
+        blank.setAttribute("aria-hidden", "true");
+        calendarGrid.appendChild(blank);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++){
+        const fullDate = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "day-cell";
+        if (today.getFullYear()===year && today.getMonth()===month && today.getDate()===day){
+          cell.classList.add("today");
+        }
+        if (selectedCalendarDate === fullDate){
+          cell.classList.add("selected");
+        }
+        const dayEntries = reminders.get(day) || [];
+
+        cell.innerHTML = `<span class="day-num">${day}</span>${dayEntries.length ? `<span class="day-dot">${dayEntries.length} 🔔</span>` : ""}`;
+        cell.addEventListener("click", ()=>{
+          selectedCalendarDate = fullDate;
+          renderReminderCalendar();
+          renderCalendarAgenda(dayEntries, fullDate);
+        });
+        calendarGrid.appendChild(cell);
+      }
+
+      if (selectedCalendarDate){
+        const currentDate = parseDateLocal(selectedCalendarDate);
+        if (!currentDate || currentDate.getMonth()!==month || currentDate.getFullYear()!==year){
+          renderCalendarAgenda([], "");
+        } else {
+          renderCalendarAgenda(reminders.get(currentDate.getDate()) || [], selectedCalendarDate);
+        }
+      } else {
+        renderCalendarAgenda([], "");
+      }
+    }
 
     // Fill category filter options (main screen)
     (function initCategoryFilter(){
@@ -866,6 +1035,14 @@ body::before{
     searchInput.addEventListener("input", renderList);
     statusFilter.addEventListener("change", renderList);
     categoryFilter && categoryFilter.addEventListener("change", renderList);
+    prevMonthBtn && prevMonthBtn.addEventListener("click", ()=>{
+      calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth()-1, 1);
+      renderReminderCalendar();
+    });
+    nextMonthBtn && nextMonthBtn.addEventListener("click", ()=>{
+      calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth()+1, 1);
+      renderReminderCalendar();
+    });
 
     clearDoneBtn.addEventListener("click", ()=>{
       if (!confirm("¿Eliminar todos los registros marcados como Hecho?")) return;
@@ -1113,6 +1290,7 @@ body::before{
     function renderAll(){
       renderCounts();
       renderList();
+      renderReminderCalendar();
     }
 
     /***********************
