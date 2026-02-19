@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>Calendario de Recordatorios</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), url("./fondo.jpg") center/cover fixed;
+        color: #e2e8f0;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+      }
+
+      .app {
+        width: min(900px, 100%);
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 16px;
+        padding: 1rem;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 15px 35px rgba(2, 6, 23, 0.4);
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .75rem;
+      }
+
+      .month-controls {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: .6rem .9rem;
+        background: #14b8a6;
+        color: #062a25;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .month-btn { background: #1e293b; color: #e2e8f0; }
+      .month-btn:hover, .day:hover { filter: brightness(1.1); }
+
+      .grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: .4rem;
+      }
+
+      .dow, .day {
+        text-align: center;
+        padding: .7rem .3rem;
+        border-radius: 8px;
+      }
+
+      .dow {
+        font-size: .85rem;
+        font-weight: 700;
+        color: #94a3b8;
+      }
+
+      .day {
+        background: rgba(30, 41, 59, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: #e2e8f0;
+      }
+
+      .day.empty { visibility: hidden; }
+      .day.has-reminders { outline: 2px solid #22c55e; }
+      .day.selected { outline: 2px solid #14b8a6; }
+
+      .panel {
+        margin-top: 1rem;
+        background: rgba(2, 6, 23, 0.5);
+        border-radius: 12px;
+        padding: 1rem;
+      }
+
+      .form {
+        display: grid;
+        grid-template-columns: 1.8fr .8fr auto;
+        gap: .5rem;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: #0f172a;
+        color: #f8fafc;
+        border-radius: 8px;
+        padding: .7rem;
+      }
+
+      .list { list-style: none; margin: .75rem 0 0; padding: 0; display: grid; gap: .4rem; }
+
+      .item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .5rem;
+        background: rgba(30, 41, 59, 0.8);
+        border-radius: 8px;
+        padding: .45rem .6rem;
+      }
+
+      .delete { background: #ef4444; color: #fff; padding: .4rem .55rem; font-size: .8rem; }
+      .hint { color: #94a3b8; font-size: .88rem; }
+
+      @media (max-width: 720px) {
+        .form { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <div class="header">
+        <h1>Calendario de recordatorios</h1>
+        <div class="month-controls">
+          <button class="month-btn" id="prev">◀</button>
+          <strong id="monthLabel"></strong>
+          <button class="month-btn" id="next">▶</button>
+        </div>
+      </div>
+
+      <button id="notificationsBtn">Activar notificaciones</button>
+      <p class="hint">Hacé click en un día para abrir la entrada y cargar un recordatorio.</p>
+
+      <section class="grid" id="calendar"></section>
+
+      <section class="panel" id="panel" hidden>
+        <h2 id="selectedLabel"></h2>
+        <form id="reminderForm" class="form">
+          <input id="text" placeholder="Escribí el recordatorio" required maxlength="120" />
+          <input id="time" type="time" required />
+          <button type="submit">Guardar</button>
+        </form>
+        <ul class="list" id="reminderList"></ul>
+      </section>
+    </main>
+
+    <script>
+      const STORAGE_KEY = "calendar-reminders-v1";
+      const monthLabel = document.getElementById("monthLabel");
+      const calendar = document.getElementById("calendar");
+      const panel = document.getElementById("panel");
+      const selectedLabel = document.getElementById("selectedLabel");
+      const reminderList = document.getElementById("reminderList");
+      const reminderForm = document.getElementById("reminderForm");
+      const textInput = document.getElementById("text");
+      const timeInput = document.getElementById("time");
+      const notificationsBtn = document.getElementById("notificationsBtn");
+
+      let currentView = new Date();
+      let selectedDate = null;
+      const scheduler = new Map();
+
+      const loadReminders = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      const saveReminders = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      const dayKey = (date) => date.toISOString().slice(0, 10);
+      const dayTitle = (date) => date.toLocaleDateString("es-AR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+
+      function renderCalendar() {
+        const year = currentView.getFullYear();
+        const month = currentView.getMonth();
+        const first = new Date(year, month, 1);
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const offset = (first.getDay() + 6) % 7;
+        const reminders = loadReminders();
+        const reminderDays = new Set(reminders.map((r) => r.date));
+
+        monthLabel.textContent = currentView.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+        calendar.innerHTML = "";
+
+        ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].forEach((name) => {
+          const el = document.createElement("div");
+          el.className = "dow";
+          el.textContent = name;
+          calendar.appendChild(el);
+        });
+
+        for (let i = 0; i < offset; i++) {
+          const empty = document.createElement("div");
+          empty.className = "day empty";
+          calendar.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month, day);
+          const key = dayKey(date);
+          const btn = document.createElement("button");
+          btn.className = "day";
+          if (key === selectedDate) btn.classList.add("selected");
+          if (reminderDays.has(key)) btn.classList.add("has-reminders");
+          btn.textContent = day;
+          btn.addEventListener("click", () => selectDay(date));
+          calendar.appendChild(btn);
+        }
+      }
+
+      function selectDay(date) {
+        selectedDate = dayKey(date);
+        panel.hidden = false;
+        selectedLabel.textContent = `Recordatorios para ${dayTitle(date)}`;
+        renderCalendar();
+        renderDayReminders();
+      }
+
+      function renderDayReminders() {
+        const items = loadReminders()
+          .filter((r) => r.date === selectedDate)
+          .sort((a, b) => a.time.localeCompare(b.time));
+
+        reminderList.innerHTML = "";
+        if (items.length === 0) {
+          reminderList.innerHTML = "<li class='hint'>No hay recordatorios para este día.</li>";
+          return;
+        }
+
+        items.forEach((item) => {
+          const li = document.createElement("li");
+          li.className = "item";
+          li.innerHTML = `<span>${item.time} - ${item.text}</span>`;
+
+          const remove = document.createElement("button");
+          remove.className = "delete";
+          remove.textContent = "Eliminar";
+          remove.addEventListener("click", () => {
+            const updated = loadReminders().filter((r) => r.id !== item.id);
+            saveReminders(updated);
+            scheduler.delete(item.id);
+            scheduleAllNotifications();
+            renderCalendar();
+            renderDayReminders();
+          });
+
+          li.appendChild(remove);
+          reminderList.appendChild(li);
+        });
+      }
+
+      async function ensureNotifications() {
+        if (!("Notification" in window)) {
+          alert("Este navegador no soporta notificaciones.");
+          return false;
+        }
+
+        if (Notification.permission === "granted") return true;
+        const permission = await Notification.requestPermission();
+        return permission === "granted";
+      }
+
+      function notify(title, body) {
+        if (Notification.permission !== "granted") return;
+
+        if (navigator.serviceWorker?.controller) {
+          navigator.serviceWorker.ready.then((reg) => reg.showNotification(title, { body, icon: "./icon-192.png" }));
+          return;
+        }
+
+        new Notification(title, { body, icon: "./icon-192.png" });
+      }
+
+      function scheduleAllNotifications() {
+        scheduler.forEach((timeoutId) => clearTimeout(timeoutId));
+        scheduler.clear();
+
+        const now = Date.now();
+        loadReminders().forEach((item) => {
+          if (item.notified) return;
+          const triggerAt = new Date(`${item.date}T${item.time}:00`).getTime();
+          const delay = triggerAt - now;
+
+          if (delay <= 0) return;
+
+          const timeoutId = setTimeout(() => {
+            notify("Recordatorio", `${item.text} (${item.time})`);
+            const updated = loadReminders().map((r) => r.id === item.id ? { ...r, notified: true } : r);
+            saveReminders(updated);
+            renderCalendar();
+            if (selectedDate) renderDayReminders();
+          }, delay);
+
+          scheduler.set(item.id, timeoutId);
+        });
+      }
+
+      function checkOverdueNotifications() {
+        const now = Date.now();
+        let changed = false;
+        const updated = loadReminders().map((r) => {
+          if (!r.notified && new Date(`${r.date}T${r.time}:00`).getTime() <= now) {
+            notify("Recordatorio", `${r.text} (${r.time})`);
+            changed = true;
+            return { ...r, notified: true };
+          }
+          return r;
+        });
+
+        if (changed) {
+          saveReminders(updated);
+          renderCalendar();
+          if (selectedDate) renderDayReminders();
+        }
+      }
+
+      reminderForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!selectedDate) return;
+        const notificationsEnabled = await ensureNotifications();
+        if (!notificationsEnabled) {
+          alert("Para notificar, aceptá permisos de notificación.");
+        }
+
+        const reminder = {
+          id: crypto.randomUUID(),
+          date: selectedDate,
+          time: timeInput.value,
+          text: textInput.value.trim(),
+          notified: false
+        };
+
+        if (!reminder.text || !reminder.time) return;
+
+        const data = loadReminders();
+        data.push(reminder);
+        saveReminders(data);
+
+        reminderForm.reset();
+        scheduleAllNotifications();
+        renderCalendar();
+        renderDayReminders();
+      });
+
+      notificationsBtn.addEventListener("click", ensureNotifications);
+      document.getElementById("prev").addEventListener("click", () => {
+        currentView.setMonth(currentView.getMonth() - 1);
+        renderCalendar();
+      });
+      document.getElementById("next").addEventListener("click", () => {
+        currentView.setMonth(currentView.getMonth() + 1);
+        renderCalendar();
+      });
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js");
+      }
+
+      renderCalendar();
+      scheduleAllNotifications();
+      setInterval(checkOverdueNotifications, 60_000);
+    </script>
+  </body>
+</html>

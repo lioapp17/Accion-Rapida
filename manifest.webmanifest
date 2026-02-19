@@ -1,19 +1,14 @@
 {
-  "name": "Buzon LioApp",
-  "short_name": "Buzon",
+  "name": "Calendario de Recordatorios",
+  "short_name": "Recordatorios",
   "start_url": "./",
-  "display": "fullscreen",
-  "background_color": "#f3f5f9",
+  "display": "standalone",
+  "background_color": "#0f172a",
   "theme_color": "#0f766e",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
       "type": "image/png"
     }
   ]
