@@ -840,7 +840,11 @@ body::before{
     const notifsStateEl = document.getElementById("notifsState");
 
     const LS_NOTIF_FIRED = "buzon_notif_fired_v1";
+    const MAX_TIMEOUT_MS = 2147483647; // límite real de setTimeout (~24.8 días)
+    const NOTIF_POLL_MS = 60 * 1000; // respaldo para equipos en suspensión / pestañas dormidas
     let notifTimeouts = new Map(); // key -> timeoutId
+    let notifPollInterval = null;
+    let swRegistration = null;
 
     function loadNotifFired(){
       try{
@@ -883,15 +887,22 @@ body::before{
       return perm === "granted";
     }
 
-    function notifyEntry(entry){
+    async function notifyEntry(entry){
       try{
         if (!("Notification" in window)) return;
         if (Notification.permission !== "granted") return;
         const when = entry.dueDate ? `${entry.dueDate}${entry.dueTime ? " " + entry.dueTime : ""}` : "";
-        new Notification("Recordatorio", {
+        const payload = {
           body: (when ? `[${when}] ` : "") + (entry.text || "Tenés un recordatorio."),
           icon: "icon-192.png"
-        });
+        };
+
+        if (swRegistration && typeof swRegistration.showNotification === "function"){
+          await swRegistration.showNotification("Recordatorio", payload);
+          return;
+        }
+
+        new Notification("Recordatorio", payload);
       }catch(e){}
     }
 
@@ -915,6 +926,43 @@ body::before{
         try{ clearTimeout(t); }catch(e){}
       }
       notifTimeouts.clear();
+
+      if (notifPollInterval){
+        try{ clearInterval(notifPollInterval); }catch(e){}
+        notifPollInterval = null;
+      }
+    }
+
+    function markAndNotifyEntry(entry){
+      const key = entryNotifKey(entry);
+      const fired = loadNotifFired();
+      if (fired[key]) return;
+      notifyEntry(entry);
+      fired[key] = true;
+      saveNotifFired(fired);
+    }
+
+    function scheduleEntryNotification(entry, targetDate){
+      const key = entryNotifKey(entry);
+
+      const scheduleStep = ()=>{
+        const fired = loadNotifFired();
+        if (fired[key]) return;
+
+        const now = Date.now();
+        const diff = targetDate.getTime() - now;
+
+        if (diff <= 0){
+          markAndNotifyEntry(entry);
+          return;
+        }
+
+        const nextDelay = Math.min(diff, MAX_TIMEOUT_MS);
+        const tid = setTimeout(scheduleStep, nextDelay);
+        notifTimeouts.set(key, tid);
+      };
+
+      scheduleStep();
     }
 
     function rescheduleNotifications(){
@@ -925,7 +973,6 @@ body::before{
       if (Notification.permission !== "granted") return;
 
       const fired = loadNotifFired();
-      const now = new Date();
 
       for (const e of state.entries){
         if (e.status !== "open") continue;
@@ -937,26 +984,26 @@ body::before{
         const key = entryNotifKey(e);
         if (fired[key]) continue;
 
-        const diff = dt.getTime() - now.getTime();
+        const diff = dt.getTime() - Date.now();
 
         if (diff <= 0){
           // Si está vencido (o es hoy y ya pasó), avisar una sola vez al reprogramar
-          notifyEntry(e);
-          fired[key] = true;
+          markAndNotifyEntry(e);
           continue;
         }
 
-        // Programar timeout (ojo: setTimeout muy largo puede ser inexacto; para uso diario sirve)
-        const tid = setTimeout(()=>{
-          const fired2 = loadNotifFired();
-          if (fired2[key]) return;
-          notifyEntry(e);
-          fired2[key] = true;
-          saveNotifFired(fired2);
-        }, diff);
-
-        notifTimeouts.set(key, tid);
+        scheduleEntryNotification(e, dt);
       }
+
+      notifPollInterval = setInterval(()=>{
+        const now = Date.now();
+        for (const e of state.entries){
+          if (e.status !== "open" || !e.dueDate) continue;
+          const dt = parseDateTimeLocal(e.dueDate, e.dueTime);
+          if (!dt || dt.getTime() > now) continue;
+          markAndNotifyEntry(e);
+        }
+      }, NOTIF_POLL_MS);
 
       saveNotifFired(fired);
     }
@@ -1718,7 +1765,12 @@ Detectá qué puede:
      ************************/
     if ("serviceWorker" in navigator){
       // If sw.js exists in repo, it will register; otherwise it silently fails.
-      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+      navigator.serviceWorker.register("./sw.js")
+        .then((reg)=>{ swRegistration = reg; })
+        .catch(()=>{});
+      navigator.serviceWorker.ready
+        .then((reg)=>{ swRegistration = reg; })
+        .catch(()=>{});
     }
 
     /***********************
