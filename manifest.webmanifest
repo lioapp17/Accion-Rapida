@@ -1,20 +1,26 @@
 {
-  "name": "Buzon LioApp",
-  "short_name": "Buzon",
+  "id": "./",
+  "name": "Buzón Personal",
+  "short_name": "Buzón",
+  "description": "Captura rápida, organización y recordatorios personales.",
+  "lang": "es-AR",
   "start_url": "./",
-  "display": "fullscreen",
-  "background_color": "#f3f5f9",
-  "theme_color": "#0f766e",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#d8c09a",
+  "theme_color": "#292820",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
