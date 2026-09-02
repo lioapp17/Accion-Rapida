@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#6ea800" />
-  <title>Buzón LioApp</title>
+  <meta name="theme-color" content="#262720" />
+  <title>Buzón Personal</title>
    <!-- Icono para pestaña del navegador -->
   <link rel="icon" type="image/png" href="icon-192.png">
 
@@ -482,6 +482,212 @@ body::before{
   opacity: 1 !important;
 }
 
+/* =========================================================
+   IDENTIDAD 2026 · PAPEL FINANCIERO / TINTA / CELESTE
+   Capa visual: no modifica funciones ni almacenamiento.
+   ========================================================= */
+:root{
+  --ink:#292820;
+  --ink-soft:#4b493f;
+  --paper:#d8c09a;
+  --paper-light:#ead9bc;
+  --paper-card:rgba(247,238,219,.91);
+  --paper-card-strong:rgba(250,244,231,.97);
+  --cyan:#69cbe3;
+  --cyan-dark:#238da8;
+  --line-ink:rgba(41,40,32,.28);
+  --danger:#a63d2f;
+  --r:18px;
+  --shadow:0 12px 32px rgba(49,39,23,.18), 0 2px 5px rgba(49,39,23,.12);
+}
+
+html{ background:var(--paper); }
+body{
+  color:var(--ink) !important;
+  background:
+    linear-gradient(rgba(83,69,47,.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(83,69,47,.09) 1px, transparent 1px),
+    radial-gradient(circle at 16% 12%, rgba(255,255,255,.30), transparent 28%),
+    radial-gradient(circle at 84% 86%, rgba(90,69,38,.13), transparent 32%),
+    var(--paper) !important;
+  background-size:28px 28px, 28px 28px, auto, auto, auto !important;
+  min-height:100%;
+}
+body::before{
+  background-image:
+    repeating-linear-gradient(8deg, transparent 0 36px, rgba(55,48,37,.035) 37px 38px),
+    repeating-linear-gradient(98deg, transparent 0 57px, rgba(255,255,255,.045) 58px 59px) !important;
+  background-size:auto !important;
+  opacity:.85 !important;
+}
+.wrap{ max-width:1180px; padding:20px 16px 40px; }
+
+.topbar{
+  position:relative;
+  overflow:hidden;
+  background:var(--ink) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  border-radius:22px;
+  padding:15px 17px;
+  box-shadow:0 14px 34px rgba(35,31,24,.28);
+  color:#fff !important;
+}
+.topbar::after{
+  content:"";
+  position:absolute;
+  width:170px;
+  height:170px;
+  right:-70px;
+  top:-108px;
+  border:18px solid rgba(105,203,227,.13);
+  border-radius:50%;
+  pointer-events:none;
+}
+.brand{ flex-direction:row; align-items:center; gap:11px; min-width:185px; }
+.brand-mark{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  display:grid;
+  place-items:center;
+  border:2px solid var(--cyan);
+  border-radius:13px 9px 14px 8px;
+  color:var(--ink) !important;
+  background:var(--cyan);
+  font-weight:1000;
+  font-size:21px;
+  transform:rotate(-2deg);
+  box-shadow:3px 3px 0 rgba(255,255,255,.16);
+}
+.brand-copy{ display:flex; flex-direction:column; gap:3px; }
+.brand .t{ color:#fff !important; font-size:17px; letter-spacing:.2px; }
+.brand .s{ color:rgba(255,255,255,.72) !important; font-size:11.5px; }
+.top-actions{ position:relative; z-index:1; justify-content:flex-end; }
+
+.card,.item,.modal-card,.lockcard,.modal-head,.block{
+  color:var(--ink) !important;
+  background:var(--paper-card) !important;
+  border:1px solid var(--line-ink) !important;
+  backdrop-filter:blur(12px) !important;
+  -webkit-backdrop-filter:blur(12px) !important;
+  box-shadow:var(--shadow);
+}
+.card{ border-radius:20px; padding:16px; }
+.card::before{
+  content:"";
+  display:block;
+  width:48px;
+  height:4px;
+  margin:-3px 0 12px;
+  border-radius:10px;
+  background:var(--cyan);
+  box-shadow:18px 0 0 rgba(41,40,32,.18);
+}
+.item{ background:rgba(255,250,238,.76) !important; border-radius:15px; }
+.item:hover{ border-color:var(--cyan-dark) !important; transform:translateY(-1px); }
+.sep{ background:rgba(41,40,32,.18); }
+.muted,.modal-sub{ color:var(--ink-soft) !important; }
+
+input,select,textarea{
+  color:var(--ink) !important;
+  background:rgba(255,252,243,.74) !important;
+  border:1px solid rgba(41,40,32,.32) !important;
+  border-radius:13px;
+  font-size:13px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+}
+textarea{ min-height:150px; line-height:1.5; }
+input:focus,select:focus,textarea:focus{
+  border-color:var(--cyan-dark) !important;
+  box-shadow:0 0 0 3px rgba(105,203,227,.28) !important;
+}
+input::placeholder,textarea::placeholder{ color:rgba(41,40,32,.55) !important; }
+
+.btn{
+  color:var(--ink) !important;
+  background:rgba(247,238,219,.9) !important;
+  border:1px solid rgba(41,40,32,.28) !important;
+  border-radius:12px;
+  box-shadow:1px 2px 0 rgba(41,40,32,.12);
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover{ background:#fff7e8 !important; transform:translateY(-1px); }
+.btn.primary{
+  background:var(--cyan) !important;
+  border-color:var(--ink) !important;
+  color:var(--ink) !important;
+  box-shadow:3px 3px 0 var(--ink);
+}
+.btn.primary:hover{ background:#8bdded !important; }
+.btn.ghost{
+  color:#fff !important;
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.26) !important;
+  box-shadow:none;
+}
+.btn.ghost:hover{ background:rgba(105,203,227,.22) !important; border-color:var(--cyan) !important; }
+.btn.danger{ color:var(--danger) !important; background:rgba(255,247,232,.78) !important; }
+
+.chip,.pill.green,.day-dot{
+  color:var(--ink) !important;
+  background:rgba(105,203,227,.28) !important;
+  border-color:rgba(35,141,168,.45) !important;
+}
+.pill,.chip.gray{ background:rgba(255,252,243,.58) !important; border-color:rgba(41,40,32,.25) !important; }
+.pill.done{ background:rgba(104,166,113,.18) !important; color:#24472a !important; }
+.day-cell,.agenda-item{
+  background:rgba(255,251,240,.54) !important;
+  border-color:rgba(41,40,32,.22) !important;
+}
+.day-cell.today{ border-color:var(--cyan-dark) !important; box-shadow:inset 0 0 0 2px rgba(105,203,227,.32); }
+.day-cell.selected{ background:rgba(105,203,227,.30) !important; border-color:var(--cyan-dark) !important; }
+.calendar-title,.modal-title{ color:var(--ink) !important; }
+
+.modal{ background:rgba(25,24,20,.72); backdrop-filter:blur(4px); }
+.modal-card{ background:var(--paper-card-strong) !important; }
+.modal-head{ background:rgba(105,203,227,.13) !important; }
+.lock{
+  background:
+    linear-gradient(rgba(41,40,32,.60),rgba(41,40,32,.60)),
+    linear-gradient(rgba(83,69,47,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(83,69,47,.12) 1px,transparent 1px),
+    var(--paper);
+  background-size:auto,28px 28px,28px 28px,auto;
+}
+.lockcard{ background:var(--paper-card-strong) !important; border-radius:22px; }
+.lockcard::before{
+  content:"BP";
+  display:grid;
+  place-items:center;
+  width:48px;
+  height:48px;
+  margin:0 auto 13px;
+  border:2px solid var(--ink);
+  border-radius:15px 10px 15px 9px;
+  background:var(--cyan);
+  font-weight:1000;
+  font-size:20px;
+  box-shadow:4px 4px 0 var(--ink);
+}
+
+@media (max-width:920px){
+  .wrap{ padding:0 10px 26px; }
+  .topbar{ margin:0 -10px 12px; border-radius:0 0 22px 22px; padding:14px 12px; }
+  .top-actions{ width:100%; display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .top-actions .btn{ padding:9px 7px; font-size:11px; }
+  .brand{ width:100%; }
+  .card{ padding:14px; }
+}
+@media (max-width:520px){
+  .top-actions{ grid-template-columns:repeat(2,1fr); }
+  .top-actions .btn:first-child{ grid-column:span 2; }
+  .row{ gap:8px; }
+  .row > *{ min-width:100%; }
+  .row .shrink{ min-width:auto; }
+  .calendar-grid,.weekdays{ gap:4px; }
+  .day-cell{ min-height:58px; padding:6px 4px; }
+}
+
   </style>
 </head>
 
@@ -489,8 +695,11 @@ body::before{
   <div class="wrap" id="app">
     <div class="topbar">
       <div class="brand">
-        <div class="t">Buzón Personal</div>
-        <div class="s">Captura rápida • Orden • IA</div>
+        <div class="brand-mark" aria-hidden="true">BP</div>
+        <div class="brand-copy">
+          <div class="t">Buzón Personal</div>
+          <div class="s">Captura rápida • Orden • IA</div>
+        </div>
       </div>
       <div class="top-actions">
         <button class="btn ghost" id="lockNowBtn" type="button">Bloquear</button>
